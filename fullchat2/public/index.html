@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>Simple Group Chat</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+	<div class="w-full max-w-xl bg-white shadow-lg rounded-lg p-6">
+		<h2 class="text-2xl font-bold text-center mb-4">Join Group Chat</h2>
+
+		<div id="joinForm" class="space-y-4">
+			<input id="nameInput" type="text" placeholder="Enter your name"
+				class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
+
+			<select id="roomSelect"
+				class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300">
+				<option value="general">General</option>
+				<option value="tech">Tech</option>
+			</select>
+
+			<button onclick="joinChat()"
+				class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+				Join Chat
+			</button>
+		</div>
+
+		<div id="chatArea" class="hidden flex flex-col mt-6">
+			<h3 class="text-xl font-semibold mb-2">Room: <span id="roomName" class="text-blue-600"></span></h3>
+
+			<div id="messages" class="bg-gray-100 h-64 overflow-y-auto p-4 border rounded mb-4 space-y-2">
+				<!-- messages go here -->
+			</div>
+
+			<div class="flex gap-2">
+				<input id="msgInput" type="text" placeholder="Type a message..."
+					class="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" />
+				<button onclick="sendMessage()"
+					class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded">
+					Send
+				</button>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- Only the <script> section changes, rest UI stays the same -->
+	<script>
+		let username = "";
+		let room = "";
+		let socket;
+
+		function joinChat() {
+			username = document.getElementById("nameInput").value.trim();
+			room = document.getElementById("roomSelect").value;
+			if (!username) return alert("Enter a name");
+
+			document.getElementById("roomName").innerText = room;
+			document.getElementById("joinForm").classList.add("hidden");
+			document.getElementById("chatArea").classList.remove("hidden");
+
+			socket = new WebSocket(`ws://${location.host}`);
+
+			socket.onopen = () => {
+				socket.send(JSON.stringify({ type: 'join', room }));
+			};
+
+			socket.onmessage = (event) => {
+				const msg = JSON.parse(event.data);
+				const messagesDiv = document.getElementById("messages");
+
+				if (msg.type === 'history') {
+					messagesDiv.innerHTML = "";
+					msg.messages.forEach(m => {
+						appendMessage(m.name, m.message);
+					});
+				}
+
+				if (msg.type === 'message') {
+					appendMessage(msg.name, msg.message);
+				}
+			};
+		}
+
+		function appendMessage(name, message) {
+			const messagesDiv = document.getElementById("messages");
+			const div = document.createElement("div");
+			div.className = "bg-white p-2 rounded shadow-sm";
+			div.innerHTML = `<span class="font-semibold text-blue-600">${name}</span>: ${message}`;
+			messagesDiv.appendChild(div);
+			messagesDiv.scrollTop = messagesDiv.scrollHeight;
+		}
+
+		function sendMessage() {
+			const msg = document.getElementById("msgInput").value;
+			if (!msg || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+			socket.send(JSON.stringify({
+				type: 'message',
+				name: username,
+				room,
+				message: msg
+			}));
+
+			document.getElementById("msgInput").value = "";
+		}
+
+		
+	</script>
+
+</body>
+
+</html>
