@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 3000
 
 # Start the WebSocket server
-CMD ["node", "index.js"]
+CMD ["node", "index.db.js"]

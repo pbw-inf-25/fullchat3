@@ -24,4 +24,4 @@ pbw-build-chat:
 	bash -c 'cd fullchat2 && docker build -t ws-server .'
 
 pbw-run-chat:
-	bash -c 'docker run -it -d -p 30002:3000 ws-server'
+	bash -c 'docker run -d --name pbw-server --network pbw-networks -p 30002:3000 ws-server'

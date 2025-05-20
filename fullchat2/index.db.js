@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ✅ Connect to MongoDB
-mongoose.connect('mongodb://root:root@pbw-networks:27017/chatdb?authSource=admin', {
+mongoose.connect('mongodb://root:root@mongo-dummy:27017/chatdb?authSource=admin', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('✅ MongoDB connected')).catch(console.error);
